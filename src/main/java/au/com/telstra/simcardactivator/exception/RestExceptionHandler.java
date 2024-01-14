@@ -15,7 +15,7 @@ import static org.springframework.http.HttpStatus.*;
 public class RestExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> serverSideException(Exception exception) {
+    public ResponseEntity<ErrorResponse> serverSideException(Exception exception) {
         ErrorResponse response = new ErrorResponse();
         response.setStatus(INTERNAL_SERVER_ERROR);
         response.setErrors(List.of(exception.getMessage()));
@@ -23,7 +23,7 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> fieldValidationException(MethodArgumentNotValidException exception) {
+    public ResponseEntity<ErrorResponse> fieldValidationException(MethodArgumentNotValidException exception) {
         ErrorResponse response = new ErrorResponse();
         List<String> errors = new ArrayList<>();
         List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
@@ -34,7 +34,15 @@ public class RestExceptionHandler {
         return buildResponseEntity(response);
     }
 
-    private ResponseEntity<Object> buildResponseEntity(ErrorResponse response) {
+    @ExceptionHandler(SimCardNotFoundException.class)
+    public ResponseEntity<ErrorResponse> simCardNotFound(SimCardNotFoundException exception) {
+        ErrorResponse response = new ErrorResponse();
+        response.setErrors(List.of(exception.getMessage()));
+        response.setStatus(NOT_FOUND);
+        return buildResponseEntity(response);
+    }
+
+    private ResponseEntity<ErrorResponse> buildResponseEntity(ErrorResponse response) {
         return new ResponseEntity<>(response, response.getStatus());
     }
 }
